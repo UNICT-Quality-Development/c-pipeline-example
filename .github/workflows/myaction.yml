@@ -1,42 +1,21 @@
-name: release-hello-world
+name: build-hello-world
 
 on:
-  workflow_dispatch:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
 
 jobs:
-  create-release:
-    permissions: write-all
+  build-hello-world:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Create Release
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: gh release create ${{ github.ref_name }} --generate-notes --title "Version ${{ github.ref_name }}"
 
-  build-hello-world:
-    needs: create-release
-    permissions: write-all
+      - name: install g++
+        run: sudo apt install -y g++
 
-    strategy:
-      matrix:
-        include:
-          - os: ubuntu-latest
-            file_name: hello_world_linux
-          - os: macos-latest
-            file_name: hello_world_mac
-          - os: windows-latest
-            file_name: hello_world_windows.exe
-
-    runs-on: ${{ matrix.os }}
-    name: ${{ matrix.os }}
-
-    steps:
-      - uses: actions/checkout@v4
-      - name: compile
-        run: g++ hello_world.cpp -o ${{ matrix.file_name }}
-
-      - name: Update Release
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: gh release upload ${{ github.ref_name }} "${{ matrix.file_name}}"
+      - name: check build
+        run: |
+          g++ hello_world.cpp -o hello_world
+          ./hello_world
